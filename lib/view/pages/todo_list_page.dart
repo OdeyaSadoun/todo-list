@@ -5,16 +5,18 @@ import '../../bl/todo_bloc/todo_event.dart';
 import '../../bl/todo_bloc/todo_state.dart';
 
 class TodoListPage extends StatelessWidget {
+  const TodoListPage({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Todo List'),
+        title: const Text('Todo List'),
       ),
       body: BlocBuilder<TodoBloc, TodoState>(
         builder: (context, state) {
           if (state is TodoLoading) {
-            return Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator());
           } else if (state is TodoLoaded) {
             return ListView.builder(
               itemCount: state.todos.length,
@@ -49,7 +51,7 @@ class TodoListPage extends StatelessWidget {
         onPressed: () {
           _addTodoDialog(context);
         },
-        child: Icon(Icons.add),
+        child: const Icon(Icons.add),
       ),
     );
   }
@@ -61,13 +63,13 @@ class TodoListPage extends StatelessWidget {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text('Add Todo'),
+          title: const Text('Add Todo'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               TextField(
                 controller: titleController,
-                decoration: InputDecoration(labelText: 'Title'),
+                decoration: const InputDecoration(labelText: 'Title'),
               )
             ],
           ),
@@ -76,7 +78,7 @@ class TodoListPage extends StatelessWidget {
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: Text('Cancel'),
+              child: const Text('Cancel'),
             ),
             TextButton(
               onPressed: () {
@@ -85,7 +87,7 @@ class TodoListPage extends StatelessWidget {
                 ));
                 Navigator.of(context).pop();
               },
-              child: Text('Add'),
+              child: const Text('Add'),
             ),
           ],
         );

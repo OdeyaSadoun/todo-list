@@ -9,9 +9,21 @@ import '../../infrastructures/events/todo_events.dart';
 class TodoBloc extends Bloc<TodoEvent, TodoState> {
   final ITodoRepository repository;
 
-  TodoBloc({required this.repository}) : super(TodoInitial());
+  TodoBloc({required this.repository}) : super(TodoInitial()) {
+ on<LoadTodos>((event, emit) async {
+      emit(TodoLoading()); // שינוי המצב לטעינה
+      try {
+        final todos = await repository.loadTodos(); // קריאת המשימות מה-Repository
+        emit(TodoLoaded(todos: todos)); // מצב נטען עם המשימות
+      } catch (e) {
+        emit(TodoError(message: e.toString())); // אם יש שגיאה, מצב של שגיאה
+      }
+    });
 
-  @override
+    // מיד לאחר האתחול, אנו שולחים את האירוע לטעינת המשימות
+    add(LoadTodos());
+  }
+
   Stream<TodoState> mapEventToState(TodoEvent event) async* {
     if (event is LoadTodos) {
       yield TodoLoading();
@@ -23,15 +35,16 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
       }
     } else if (event is AddTodo) {
       if (state is TodoLoaded) {
-        final List<TodoItem> updatedTodos = List.from((state as TodoLoaded).todos)
-          ..add(TodoItem(
-            id: DateTime.now().toString(),
-            title: event.title,
-          ));
-        
+        final List<TodoItem> updatedTodos =
+            List.from((state as TodoLoaded).todos)
+              ..add(TodoItem(
+                id: DateTime.now().toString(),
+                title: event.title,
+              ));
+
         yield TodoLoaded(todos: updatedTodos);
         repository.saveTodos(updatedTodos);
-        
+
         eventBus.fire(TodoAddedEvent(todo: updatedTodos.last));
       }
     } else if (event is DeleteTodo) {
@@ -40,10 +53,10 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
             .todos
             .where((todo) => todo.id != event.id)
             .toList();
-        
+
         yield TodoLoaded(todos: updatedTodos);
         repository.saveTodos(updatedTodos);
-        
+
         eventBus.fire(TodoDeletedEvent(todoId: event.id));
       }
     }
