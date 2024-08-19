@@ -10,7 +10,8 @@ class TodoRepository implements ITodoRepository {
   @override
   Future<List<TodoItem>> loadTodos() async {
     try {
-      final jsonData = await jsonManager.readJson();
+      // העברת הנתיב של הקובץ JSON כפרמטר לפונקציה readJson
+      final jsonData = await jsonManager.readJson('todos.json');
       final List<dynamic> todosJson = jsonData['todos'] ?? [];
 
       return todosJson.map((json) => TodoItem.fromJson(json)).toList();
@@ -23,9 +24,10 @@ class TodoRepository implements ITodoRepository {
   Future<void> saveTodos(List<TodoItem> todos) async {
     try {
       final todosJson = todos.map((todo) => todo.toJson()).toList();
-      await jsonManager.writeJson({'todos': todosJson});
+      await jsonManager.writeJson('todos.json', {'todos': todosJson});
     } catch (e) {
       throw Exception('Error saving todos: $e');
     }
   }
+
 }

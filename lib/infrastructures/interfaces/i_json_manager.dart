@@ -1,4 +1,4 @@
 abstract class IJsonManager {
-  Future<Map<String, dynamic>> readJson();
-  Future<void> writeJson(Map<String, dynamic> jsonData);
+  Future<Map<String, dynamic>> readJson(String path);
+  Future<void> writeJson(String path, Map<String, dynamic> jsonData);
 }

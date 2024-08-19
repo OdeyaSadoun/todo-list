@@ -2,7 +2,8 @@ import '../../domain/models/data_classes/todo_item.dart';
 
 abstract class TodoState {}
 
-class TodoInitial extends TodoState {}
+class TodoInitial extends TodoState {
+}
 
 class TodoLoading extends TodoState {}
 

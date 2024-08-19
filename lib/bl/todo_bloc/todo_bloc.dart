@@ -1,64 +1,79 @@
+import 'package:event_bus/event_bus.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../infrastructures/interfaces/i_todo_repository.dart';
+import 'package:todo_list_app/infrastructures/interfaces/i_json_manager.dart';
 import '../../domain/models/data_classes/todo_item.dart';
+import '../../infrastructures/events/todo_events.dart';
 import 'todo_event.dart';
 import 'todo_state.dart';
-import '../../infrastructures/events/event_bus.dart';
-import '../../infrastructures/events/todo_events.dart';
 
 class TodoBloc extends Bloc<TodoEvent, TodoState> {
-  final ITodoRepository repository;
+  final EventBus _eventBus;
+  final List<TodoItem> _todos = [];
+  final IJsonManager jsonManager;
 
-  TodoBloc({required this.repository}) : super(TodoInitial()) {
- on<LoadTodos>((event, emit) async {
-      emit(TodoLoading()); // שינוי המצב לטעינה
-      try {
-        final todos = await repository.loadTodos(); // קריאת המשימות מה-Repository
-        emit(TodoLoaded(todos: todos)); // מצב נטען עם המשימות
+  TodoBloc({required this.jsonManager, required EventBus eventBus}) 
+    : _eventBus = eventBus, 
+      super(TodoInitial()) {
+    _startEventListening();
+    _startEventBusListening();
+    add(LoadTodos());
+    print("added event");
+  }
+  
+  void _startEventListening() {
+    on<LoadTodos>((event, emit) async {
+      print("in load todos event");
+      emit(TodoLoading());
+     try {
+      final todos = await _loadTodosFromJson();
+      emit(TodoLoaded(todos: todos));
+
+      _eventBus.fire(TodosLoadedEvent(todos: todos));
       } catch (e) {
-        emit(TodoError(message: e.toString())); // אם יש שגיאה, מצב של שגיאה
+        emit(TodoError(message: e.toString()));
       }
     });
 
-    // מיד לאחר האתחול, אנו שולחים את האירוע לטעינת המשימות
-    add(LoadTodos());
-  }
-
-  Stream<TodoState> mapEventToState(TodoEvent event) async* {
-    if (event is LoadTodos) {
-      yield TodoLoading();
-      try {
-        final todos = await repository.loadTodos();
-        yield TodoLoaded(todos: todos);
-      } catch (e) {
-        yield TodoError(message: e.toString());
-      }
-    } else if (event is AddTodo) {
+    on<AddTodo>((event, emit) {
       if (state is TodoLoaded) {
-        final List<TodoItem> updatedTodos =
-            List.from((state as TodoLoaded).todos)
-              ..add(TodoItem(
-                id: DateTime.now().toString(),
-                title: event.title,
-              ));
+        final List<TodoItem> updatedTodos = List.from(_todos)
+          ..add(TodoItem(
+            id: DateTime.now().toString(),
+            title: event.title,
+          ));
 
-        yield TodoLoaded(todos: updatedTodos);
-        repository.saveTodos(updatedTodos);
-
-        eventBus.fire(TodoAddedEvent(todo: updatedTodos.last));
+        _todos.addAll(updatedTodos);
+        emit(TodoLoaded(todos: updatedTodos));
+        _eventBus.fire(TodoAddedEvent(todo: updatedTodos.last));
       }
-    } else if (event is DeleteTodo) {
+    });
+
+    on<DeleteTodo>((event, emit) {
       if (state is TodoLoaded) {
-        final List<TodoItem> updatedTodos = (state as TodoLoaded)
-            .todos
+        final List<TodoItem> updatedTodos = _todos
             .where((todo) => todo.id != event.id)
             .toList();
 
-        yield TodoLoaded(todos: updatedTodos);
-        repository.saveTodos(updatedTodos);
-
-        eventBus.fire(TodoDeletedEvent(todoId: event.id));
+        _todos.clear();
+        _todos.addAll(updatedTodos);
+        emit(TodoLoaded(todos: updatedTodos));
+        _eventBus.fire(TodoDeletedEvent(todoId: event.id));
       }
-    }
+    });
+  }
+
+  void _startEventBusListening() {
+    // Implement logic to listen to external events from the event bus
+  }
+
+Future<List<TodoItem>> _loadTodosFromJson() async {
+  try {
+    final jsonData = await jsonManager.readJson('todos.json');
+    final List<dynamic> todosJson = jsonData['todos'] ?? [];
+    return todosJson.map((json) => TodoItem.fromJson(json)).toList();
+  } catch (e) {
+    throw Exception('Error loading todos: $e');
   }
 }
+}
+
