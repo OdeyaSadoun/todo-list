@@ -43,12 +43,13 @@ class TodoListPage extends StatelessWidget {
           } else if (state is TodoError) {
             return Center(child: Text('Error: ${state.message}'));
           } else {
-            return Center(child: Text('No todos'));
+            return const Center(child: Text('No todos'));
           }
         },
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
+          print(context);
           _addTodoDialog(context);
         },
         child: const Icon(Icons.add),
@@ -56,11 +57,11 @@ class TodoListPage extends StatelessWidget {
     );
   }
 
-  void _addTodoDialog(BuildContext context) {
+  void _addTodoDialog(BuildContext parentContext) {
     final titleController = TextEditingController();
 
     showDialog(
-      context: context,
+      context: parentContext,
       builder: (context) {
         return AlertDialog(
           title: const Text('Add Todo'),
@@ -82,7 +83,8 @@ class TodoListPage extends StatelessWidget {
             ),
             TextButton(
               onPressed: () {
-                BlocProvider.of<TodoBloc>(context).add(AddTodo(
+                print(context);
+                BlocProvider.of<TodoBloc>(parentContext).add(AddTodo(
                   title: titleController.text,
                 ));
                 Navigator.of(context).pop();

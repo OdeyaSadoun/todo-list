@@ -17,7 +17,6 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
     _startEventListening();
     _startEventBusListening();
     add(LoadTodos());
-    print("added event");
   }
   
   void _startEventListening() {
@@ -35,7 +34,9 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
     });
 
     on<AddTodo>((event, emit) {
+      print("in add todos event");
       if (state is TodoLoaded) {
+        print(_todos);
         final List<TodoItem> updatedTodos = List.from(_todos)
           ..add(TodoItem(
             id: DateTime.now().toString(),
