@@ -8,8 +8,8 @@ import 'todo_state.dart';
 
 class TodoBloc extends Bloc<TodoEvent, TodoState> {
   final EventBus _eventBus;
-  final List<TodoItem> _todos = [];
   final IJsonManager jsonManager;
+  final List<TodoItem> _todos = [];
 
   TodoBloc({required this.jsonManager, required EventBus eventBus})
       : _eventBus = eventBus,
@@ -22,10 +22,10 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
     on<LoadTodos>((event, emit) async {
       emit(TodoLoading());
       try {
-        final todos = await _loadTodosFromJson();
-        emit(TodoLoaded(todos: todos));
-
-        _eventBus.fire(TodosLoadedEvent(todos: todos));
+        _todos.clear();
+        _todos.addAll(await _loadTodosFromJson());
+        emit(TodoLoaded(todos: _todos));
+        _eventBus.fire(TodosLoadedEvent(todos: _todos));
       } catch (e) {
         emit(TodoError(message: e.toString()));
       }
@@ -40,6 +40,7 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
           ));
 
         _todos.clear();
+        _todos.addAll(updatedTodos);
         List<TodoItem> todosAfterAdding =
             await _addTodosToJson(updatedTodos, jsonManager);
         emit(TodoLoaded(todos: todosAfterAdding));
@@ -49,34 +50,34 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
 
     on<ToggleTodo>((event, emit) async {
       if (state is TodoLoaded) {
-        // יצירת רשימת משימות מעודכנת עם שינוי מצב המשימה לפי ה-id
         final updatedTodos = (state as TodoLoaded).todos.map((todo) {
           if (todo.id == event.id) {
             return TodoItem(
               id: todo.id,
               title: todo.title,
-              isCompleted: !todo.isCompleted, // שינוי מצב המשימה
+              isCompleted: !todo.isCompleted, 
             );
           }
           return todo;
         }).toList();
 
-        // שמירה ל-JSON
         await _saveTodosToJson(updatedTodos, jsonManager);
 
-        // שליחת המצב החדש עם הרשימה המעודכנת
         emit(TodoLoaded(todos: updatedTodos));
       }
     });
 
-    on<DeleteTodo>((event, emit) {
+    on<DeleteTodo>((event, emit) async {
       if (state is TodoLoaded) {
         final List<TodoItem> updatedTodos =
             _todos.where((todo) => todo.id != event.id).toList();
 
         _todos.clear();
         _todos.addAll(updatedTodos);
+        await _saveTodosToJson(updatedTodos, jsonManager);
+
         emit(TodoLoaded(todos: updatedTodos));
+
         _eventBus.fire(TodoDeletedEvent(todoId: event.id));
       }
     });

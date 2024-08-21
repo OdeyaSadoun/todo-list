@@ -24,13 +24,28 @@ class TodoListPage extends StatelessWidget {
                 final todo = state.todos[index];
                 return ListTile(
                   title: Text(todo.title),
-                  trailing: Checkbox(
-                    value: todo.isCompleted,
-                    onChanged: (_) {
-                      BlocProvider.of<TodoBloc>(context).add(ToggleTodo(
-                        id: todo.id,
-                      ));
-                    },
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // כפתור צ'קבוקס לסימון המשימה כהושלמה או לא
+                      Checkbox(
+                        value: todo.isCompleted,
+                        onChanged: (_) {
+                          BlocProvider.of<TodoBloc>(context).add(ToggleTodo(
+                            id: todo.id,
+                          ));
+                        },
+                      ),
+                      // כפתור מחיקה
+                      IconButton(
+                        icon: const Icon(Icons.delete),
+                        onPressed: () {
+                          BlocProvider.of<TodoBloc>(context).add(DeleteTodo(
+                            id: todo.id,
+                          ));
+                        },
+                      ),
+                    ],
                   ),
                   onLongPress: () {
                     BlocProvider.of<TodoBloc>(context).add(DeleteTodo(
