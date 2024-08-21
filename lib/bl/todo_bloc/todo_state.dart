@@ -1,6 +1,8 @@
 import '../../domain/models/data_classes/todo_item.dart';
 
-abstract class TodoState {}
+abstract class TodoState {
+  Iterable? get todos => null;
+}
 
 class TodoInitial extends TodoState {
 }

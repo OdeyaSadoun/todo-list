@@ -10,7 +10,6 @@ class TodoRepository implements ITodoRepository {
   @override
   Future<List<TodoItem>> loadTodos() async {
     try {
-      // העברת הנתיב של הקובץ JSON כפרמטר לפונקציה readJson
       final jsonData = await jsonManager.readJson('todos.json');
       final List<dynamic> todosJson = jsonData['todos'] ?? [];
 
