@@ -49,7 +49,6 @@ class TodoListPage extends StatelessWidget {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          print(context);
           _addTodoDialog(context);
         },
         child: const Icon(Icons.add),
@@ -83,7 +82,6 @@ class TodoListPage extends StatelessWidget {
             ),
             TextButton(
               onPressed: () {
-                print(context);
                 BlocProvider.of<TodoBloc>(parentContext).add(AddTodo(
                   title: titleController.text,
                 ));
