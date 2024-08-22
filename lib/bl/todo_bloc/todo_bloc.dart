@@ -29,6 +29,7 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
       } catch (e) {
         emit(TodoError(message: e.toString()));
       }
+
     });
 
     on<AddTodo>((event, emit) async {
@@ -38,11 +39,10 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
             id: DateTime.now().toString(),
             title: event.title,
           ));
-
         _todos.clear();
         _todos.addAll(updatedTodos);
         List<TodoItem> todosAfterAdding =
-            await _addTodosToJson(updatedTodos, jsonManager);
+            await _saveTodosToJson(updatedTodos, jsonManager);
         emit(TodoLoaded(todos: todosAfterAdding));
         _eventBus.fire(TodoAddedEvent(todo: updatedTodos.last));
       }
@@ -55,14 +55,12 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
             return TodoItem(
               id: todo.id,
               title: todo.title,
-              isCompleted: !todo.isCompleted, 
+              isCompleted: !todo.isCompleted,
             );
           }
           return todo;
         }).toList();
-
         await _saveTodosToJson(updatedTodos, jsonManager);
-
         emit(TodoLoaded(todos: updatedTodos));
       }
     });
@@ -71,13 +69,10 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
       if (state is TodoLoaded) {
         final List<TodoItem> updatedTodos =
             _todos.where((todo) => todo.id != event.id).toList();
-
         _todos.clear();
         _todos.addAll(updatedTodos);
         await _saveTodosToJson(updatedTodos, jsonManager);
-
         emit(TodoLoaded(todos: updatedTodos));
-
         _eventBus.fire(TodoDeletedEvent(todoId: event.id));
       }
     });
@@ -87,37 +82,18 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
     try {
       final jsonData = await jsonManager.readJson('todos.json');
       final List<dynamic> todosJson = jsonData['todos'] ?? [];
+
       return todosJson.map((json) => TodoItem.fromJson(json)).toList();
     } catch (e) {
       throw Exception('Error loading todos: $e');
     }
   }
 
-  Future<void> _saveTodosToJson(
+  Future<List<TodoItem>> _saveTodosToJson(
       List<TodoItem> updatedTodos, IJsonManager jsonManager) async {
     try {
       await jsonManager.writeJson('todos.json',
           {'todos': updatedTodos.map((todo) => todo.toJson()).toList()});
-      print("Todos successfully saved to JSON");
-    } catch (e) {
-      print("Error saving todos to JSON: $e");
-      throw Exception("Failed to save todos");
-    }
-  }
-
-  Future<List<TodoItem>> _addTodosToJson(
-      List<TodoItem> todos, IJsonManager jsonManager) async {
-    try {
-      final existingData = await jsonManager.readJson('todos.json');
-      final List<dynamic> existingTodosJson = existingData['todos'] ?? [];
-      List<TodoItem> existingTodos =
-          existingTodosJson.map((json) => TodoItem.fromJson(json)).toList();
-
-      final List<TodoItem> updatedTodos = List.from(existingTodos)
-        ..addAll(todos);
-
-      // קריאה לפונקציה החיצונית לשמירת המשימות המעודכנות ל-JSON
-      await _saveTodosToJson(updatedTodos, jsonManager);
 
       return updatedTodos;
     } catch (e) {
