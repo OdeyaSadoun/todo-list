@@ -27,7 +27,6 @@ class TodoListPage extends StatelessWidget {
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      // כפתור צ'קבוקס לסימון המשימה כהושלמה או לא
                       Checkbox(
                         value: todo.isCompleted,
                         onChanged: (_) {
@@ -36,7 +35,6 @@ class TodoListPage extends StatelessWidget {
                           ));
                         },
                       ),
-                      // כפתור מחיקה
                       IconButton(
                         icon: const Icon(Icons.delete),
                         onPressed: () {
@@ -110,3 +108,30 @@ class TodoListPage extends StatelessWidget {
     );
   }
 }
+
+
+// import 'package:flutter/material.dart';
+// import 'package:flutter_bloc/flutter_bloc.dart';
+// import '../../bl/todo_bloc/todo_bloc.dart';
+// import '../../bl/todo_bloc/todo_event.dart';
+// import '../widgets/todo_list.dart';
+// import '../widgets/add_todo_button.dart';
+// import 'package:get_it/get_it.dart';
+
+// class TodoListPage extends StatelessWidget {
+//   const TodoListPage({super.key});
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return BlocProvider(
+//       create: (context) => GetIt.I<TodoBloc>()..add(LoadTodos()),
+//       child: Scaffold(
+//         appBar: AppBar(
+//           title: const Text('Todo List'),
+//         ),
+//         body: const TodoList(),
+//         floatingActionButton: const AddTodoButton(),
+//       ),
+//     );
+//   }
+// }
